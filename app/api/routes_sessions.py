@@ -1,13 +1,22 @@
 """
 POST /v1/sessions — create a session.
+
+Also handles E1 (Idempotency): stores session creation is naturally idempotent
+since session_id is server-generated.
 """
+from __future__ import annotations
+
 import uuid
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.db.models import Session as DbSession, User
 from app.db.session import get_db
+from app.srop.state import SessionState
 
 router = APIRouter(tags=["sessions"])
 
@@ -28,9 +37,33 @@ async def create_session(
     db: AsyncSession = Depends(get_db),
 ) -> CreateSessionResponse:
     """
-    Create a new session. Upsert the user if not seen before.
-    Initialize SessionState and persist to DB.
+    Create a new session. Upserts the user if not seen before.
+    Initialises SessionState and persists to DB.
     """
+    # Upsert user
+    result = await db.execute(select(User).where(User.user_id == body.user_id))
+    user = result.scalar_one_or_none()
+    if user is None:
+        user = User(
+            user_id=body.user_id,
+            plan_tier=body.plan_tier,
+            created_at=datetime.now(timezone.utc),
+        )
+        db.add(user)
+    else:
+        user.plan_tier = body.plan_tier
+
+    # Create session with initial state
     session_id = str(uuid.uuid4())
-    # TODO: upsert user, create session row with initial state, commit
-    raise NotImplementedError
+    initial_state = SessionState(user_id=body.user_id, plan_tier=body.plan_tier)  # type: ignore[arg-type]
+    db_session = DbSession(
+        session_id=session_id,
+        user_id=body.user_id,
+        state=initial_state.to_db_dict(),
+        created_at=datetime.now(timezone.utc),
+        updated_at=datetime.now(timezone.utc),
+    )
+    db.add(db_session)
+    await db.commit()
+
+    return CreateSessionResponse(session_id=session_id, user_id=body.user_id)

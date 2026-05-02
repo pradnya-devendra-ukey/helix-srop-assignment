@@ -2,6 +2,8 @@
 Database models — SQLAlchemy 2.x async, Postgres-compatible schema.
 All timestamps UTC. JSON columns store Python dicts/lists.
 """
+from __future__ import annotations
+
 from datetime import datetime
 from typing import Any
 
@@ -59,4 +61,17 @@ class AgentTrace(Base):
     tool_calls: Mapped[list[dict[str, Any]]] = mapped_column(JSON, default=list)
     retrieved_chunk_ids: Mapped[list[str]] = mapped_column(JSON, default=list)
     latency_ms: Mapped[int] = mapped_column(default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+class IdempotencyRecord(Base):
+    """E1 — stores hashed (session_id + Idempotency-Key) → cached response."""
+
+    __tablename__ = "idempotency_records"
+
+    idem_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
+    session_id: Mapped[str] = mapped_column(String(64), index=True)
+    reply: Mapped[str] = mapped_column(Text)
+    routed_to: Mapped[str] = mapped_column(String(32))
+    trace_id: Mapped[str] = mapped_column(String(64))
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
