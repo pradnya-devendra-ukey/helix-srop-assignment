@@ -12,10 +12,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# Pre-ingest docs at build time so the vector store is ready
-RUN python -m app.rag.ingest --path docs/
-
 EXPOSE 8000
 
-# $PORT is injected by Railway/Render; fall back to 8000 locally
-CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+# Ingest docs at runtime (needs GOOGLE_API_KEY), then start the server
+CMD ["sh", "-c", "python -m app.rag.ingest --path docs/ && uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
