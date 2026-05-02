@@ -12,9 +12,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# Pre-ingest docs at build time so the vector store is ready
-RUN python -m app.rag.ingest --path docs/
-
 EXPOSE 8000
 
 # $PORT is injected by Railway/Render; fall back to 8000 locally
