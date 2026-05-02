@@ -15,6 +15,8 @@ InMemorySessionService.
 """
 from __future__ import annotations
 
+from google.genai import types as genai_types
+
 import asyncio
 import re
 import time
@@ -92,7 +94,10 @@ async def run(session_id: str, user_message: str, db: AsyncSession) -> PipelineR
         events = runner.run_async(
             user_id=state.user_id,
             session_id=adk_session.id,
-            new_message={"role": "user", "parts": [{"text": user_message}]},
+            new_message=genai_types.Content(
+                role="user",
+                parts=[genai_types.Part(text=user_message)],
+            ),
         )
 
         async for event in events:

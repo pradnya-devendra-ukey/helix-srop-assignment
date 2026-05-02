@@ -1,4 +1,38 @@
-.DS_Store
+# ── Secrets ───────────────────────────────────────────────────────────────────
+.env                    # real secrets — NEVER commit
+
+# ── Python ────────────────────────────────────────────────────────────────────
 .venv/
-.env
-.env.example
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# ── Data / DB ─────────────────────────────────────────────────────────────────
+*.db
+*.sqlite
+*.sqlite3
+chroma_db/              # vector store — rebuilt via ingest.py
+
+# ── Scratch / Debug files ──────────────────────────────────────────────────────
+debug_pipeline.py
+session.json
+chat1.json
+chat2.json
+chat3.json
+
+# ── Tooling ───────────────────────────────────────────────────────────────────
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+*.log
+
+# ── OS ────────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
