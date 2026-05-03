@@ -1,5 +1,5 @@
 # ── Secrets ───────────────────────────────────────────────────────────────────
-.env                    # real secrets — NEVER commit
+.env
 
 # ── Python ────────────────────────────────────────────────────────────────────
 .venv/
@@ -16,7 +16,7 @@ build/
 *.db
 *.sqlite
 *.sqlite3
-chroma_db/              # vector store — rebuilt via ingest.py
+chroma_db/
 
 # ── Scratch / Debug files ──────────────────────────────────────────────────────
 debug_pipeline.py

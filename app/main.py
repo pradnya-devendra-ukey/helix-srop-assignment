@@ -1,3 +1,5 @@
+import os
+
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -10,12 +12,17 @@ from app.api import routes_sessions, routes_chat, routes_traces
 from app.api.errors import HelixError, helix_error_handler
 from app.db.session import init_db
 from app.obs.logging import configure_logging
+from app.settings import settings
 
 UI_DIR = Path(__file__).parent.parent / "ui"
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):  # type: ignore[type-arg]
+    # Ensure the ADK / google-genai SDK always sees the key from .env,
+    # overriding any stale GOOGLE_API_KEY that may be set in the OS environment.
+    if settings.google_api_key:
+        os.environ["GOOGLE_API_KEY"] = settings.google_api_key
     configure_logging()
     await init_db()
     yield
